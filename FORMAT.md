@@ -60,7 +60,7 @@ Everything after the closing `---` is the note, in Markdown. Manicule writes one
 
 ## Conflict copies
 
-A sync app such as Syncthing that finds a file changed on two computers at once keeps both, naming one copy like `example-com-3f2a9c01be.sync-conflict-20261114-101010-ABCDEFG.md`, next to the file (also in `.trash/`). Manicule lists these copies in its **Sync conflicts** view, where you choose which version to keep. It never writes, moves or deletes a conflict copy; delete it yourself once you have chosen.
+A sync app such as Syncthing that finds a file changed on two computers at once keeps both, naming one copy like `example-com-3f2a9c01be.sync-conflict-20261114-101010-ABCDEFG.md`, next to the file (also in `.trash/`). Manicule lists these copies in its **Sync conflicts** view, where you choose which version to keep. It never changes, moves or deletes a conflict copy; delete it yourself once you have chosen. Manicule makes one kind itself: a file it could not read, kept before Manicule replaces it (see below), named like `example-com-3f2a9c01be.sync-conflict-20261114-101010-MANICUL.md`.
 
 ## How Manicule reads changes back
 
@@ -71,13 +71,13 @@ Manicule watches the folder. When a file changes outside Manicule, it reads the 
 - If the file's `updated` is later than Manicule's, the file wins: the whole record takes the file's values.
 - Otherwise Manicule keeps its own version, and the file is replaced with it the next time Manicule saves that page.
 
-A file that cannot be read (broken front matter, an unknown format version, an `updated` that is not a time, or a name that does not match its URL) is listed in Settings and changes nothing in Manicule. The file itself is not kept: the next time Manicule saves that page (for example when that bookmark changes in Manicule), it replaces the file with its own version, and the unreadable edit is lost. Fix the file before then to keep your edit.
+A file that cannot be read (broken front matter, an unknown format version, an `updated` that is not a time, or a name that does not match its URL) is listed in Settings and changes nothing in Manicule. The file stays as it is until Manicule next saves that page (for example when that bookmark changes in Manicule). Then Manicule first keeps the unreadable file as a conflict copy, which shows in **Sync conflicts**, and replaces the file with its own version. Nothing in the unreadable file is lost when Manicule saves over it: copy your edit back from the conflict copy, fix it, and delete the copy. Saving over the same unreadable text again makes no second copy, and a conflict copy is never overwritten. A helper too old to keep the copy does not replace the file: only that bookmark waits (every other bookmark is still saved), and Settings name the file and say why. Fix the file (Manicule then saves the bookmark to it) or update the helper.
 
 ## What is safe to edit
 
 - **Safe:** `tags`, `favorite`, `excerpt`, `cover` and the note. Set `updated` to the current time (UTC) whenever you change something, or Manicule's older version wins and overwrites your change.
 - **Safe:** adding keys of your own.
-- **Keep the file readable:** a file Manicule cannot read (see above) is replaced the next time Manicule saves that page, edit and all. Check the front matter is still valid YAML after editing it by hand.
+- **Keep the file readable:** a file Manicule cannot read (see above) is replaced the next time Manicule saves that page; your version is kept as a conflict copy in **Sync conflicts**, to copy your edit back from. Check the front matter is still valid YAML after editing it by hand.
 - **Leave alone:** `url`, `normalized_url` and the file name, which identify the page; `locations`, `created`, `deleted_at`, the `link_` keys and `manicule`, which Manicule keeps up to date. To rename, move or delete a bookmark, do it in the browser or in Manicule.
 - **Avoid:** creating or deleting files by hand. Bookmarks themselves live in the browser: a new file adds no bookmark, and deleting a file deletes no bookmark.
 
