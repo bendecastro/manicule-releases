@@ -54,6 +54,6 @@ Change the global shortcuts from the extensions page: open **Keyboard shortcuts*
 
 ## Backup
 
-Open Settings, **Backup**. **Export** saves one file with your tags, notes, favorites, smart collections and settings; keep it as your backup. **Import** reads that file back, and also bookmarks HTML files and Raindrop CSV exports. It shows what will change before changing anything. Your bookmarks themselves stay in the browser and its own sync.
+Open Settings, **Backup**. **Export** saves one file with your tags, notes, favorites, smart collections and settings; keep it as your backup. **Import** reads that file back, and also bookmarks HTML files, Raindrop CSV exports, and exports from linkding, Karakeep, Linkwarden and Pocket. It shows what will change before changing anything. Your bookmarks themselves stay in the browser and its own sync.
 
-License: MIT.
+License: proprietary, all rights reserved. Free to install and use; not open source.
