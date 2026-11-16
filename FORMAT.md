@@ -106,7 +106,3 @@ manicule: 1
 
 Read the section on partial indexes again before the migration.
 ```
-
-## License
-
-This format description is licensed under [Creative Commons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/) (CC BY 4.0). Anyone may use it to build tools that read or write Manicule's files.
