@@ -56,4 +56,4 @@ Change the global shortcuts from the extensions page: open **Keyboard shortcuts*
 
 Open Settings, **Backup**. **Export** saves one file with your tags, notes, favorites, smart collections and settings; keep it as your backup. **Import** reads that file back, and also bookmarks HTML files, Raindrop CSV exports, and exports from linkding, Karakeep, Linkwarden and Pocket. It shows what will change before changing anything. Your bookmarks themselves stay in the browser and its own sync.
 
-License: proprietary, all rights reserved. Free to install and use; not open source.
+License: Manicule is proprietary, all rights reserved; it is free to install and use. Its Markdown file format ([FORMAT.md](FORMAT.md)) is open under CC BY 4.0, so any tool may read and write your files, and `install.sh` is MIT.
