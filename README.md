@@ -39,16 +39,17 @@ The files the helper writes are described in [FORMAT.md](FORMAT.md).
 | Shortcut | Action |
 | --- | --- |
 | Alt+Shift+M | Open the full app |
-| Alt+Shift+O | Open the side panel |
+| Alt+Shift+O | Open or close the side panel |
 | Alt+Shift+S | Save the current page (or click the toolbar button) |
-| `/` | Command palette and search |
-| `?` | List every key |
-| `j` / `k` | Next / previous item |
+| `:` | Command palette and search |
+| `s` or `/` | Search bookmarks |
+| `?` | Show keyboard shortcuts, every key by task |
+| `j` / `k` | Move down / up |
 | `g` then `u` / `f` / `t` | Go to Unsorted, Favorites, Trash |
 | `g` then `,` | Settings |
-| `x` | Select for bulk actions |
+| `Space` | Select the focused row (keys such as `d` and `f` then act on the selection) |
 | `f` / `e` / `d` | Favorite / edit tags and note / delete |
-| `Ctrl+Z` | Undo |
+| `u` / `Ctrl+Z` | Undo the last change |
 
 Change the global shortcuts from the extensions page: open **Keyboard shortcuts** there.
 
