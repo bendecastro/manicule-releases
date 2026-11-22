@@ -42,10 +42,11 @@ The files the helper writes are described in [FORMAT.md](FORMAT.md).
 | Alt+Shift+O | Open or close the side panel |
 | Alt+Shift+S | Save the current page (or click the toolbar button) |
 | `:` | Command palette and search |
-| `s` or `/` | Search bookmarks |
+| `/` | Search bookmarks |
+| `s` | Sort the list: then `m` Manual, `d` Date added, `n` Name, `b` Best |
 | `?` | Show keyboard shortcuts, every key by task |
 | `j` / `k` | Move down / up |
-| `g` then `u` / `f` / `t` | Go to Unsorted, Favorites, Trash |
+| `g` then `0` / `f` / `t` | Go to Unsorted, Favorites, Trash |
 | `g` then `,` | Settings |
 | `Space` | Select the focused row (keys such as `d` and `f` then act on the selection) |
 | `f` / `e` / `d` | Favorite / edit tags and note / delete |

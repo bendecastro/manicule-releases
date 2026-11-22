@@ -50,13 +50,15 @@ Keys are written in this order. Times are ISO 8601 in UTC, for example `2026-10-
 | `link_checked` | time | Only after a check: when it ran. A check does not change `updated`. |
 | `manicule` | number, required | The format version, `1`. Files written before Manicule was renamed carry `shelfmark: 1` instead and are still read; Manicule rewrites them with `manicule:`. |
 
-Keys Manicule does not know are kept as they are when Manicule rewrites the file, so you can add your own. They are not stored in the browser, so they do not reach the Manicule export file or another computer except through the files themselves.
+Keys Manicule does not know are kept as they are, so you can add your own: Manicule stores them with the record in the browser, writes them back when it rewrites the file, and carries them in the Manicule export file. A newer Manicule's keys survive an older one the same way ([Fields and compatibility](#fields-and-compatibility)).
 
 The browser's own bookmark ids and folder ids are never in the files; they differ on every computer.
 
 ## The body
 
 Everything after the closing `---` is the note, in Markdown. Manicule writes one empty line between the front matter and the note; a record without a note ends at the closing `---`.
+
+From stage 3 the body can end with a `## Highlights` section, which is not part of the note ([Highlights](#highlights)).
 
 ## Conflict copies
 
@@ -80,6 +82,111 @@ A file that cannot be read (broken front matter, an unknown format version, an `
 - **Keep the file readable:** a file Manicule cannot read (see above) is replaced the next time Manicule saves that page; your version is kept as a conflict copy in **Sync conflicts**, to copy your edit back from. Check the front matter is still valid YAML after editing it by hand.
 - **Leave alone:** `url`, `normalized_url` and the file name, which identify the page; `locations`, `created`, `deleted_at`, the `link_` keys and `manicule`, which Manicule keeps up to date. To rename, move or delete a bookmark, do it in the browser or in Manicule.
 - **Avoid:** creating or deleting files by hand. Bookmarks themselves live in the browser: a new file adds no bookmark, and deleting a file deletes no bookmark.
+
+## Fields and compatibility
+
+This section is the one home for every field Manicule will store per page, built or not yet built ([decisions 355–359](decisions/log.md)). A field that is not built yet is **reserved**: its name and meaning are fixed now, and the work item named beside it builds it. A new field takes its row here, or is added here by these rules in the same change that builds it.
+
+Rules:
+
+1. **Names.** Front matter keys are `snake_case`; the same field in the browser's record is `camelCase` (`deleted_at` is `deletedAt`). One name per field; a reserved name is never used for anything else, and a field is never renamed.
+2. **Adding a field never changes the version.** `manicule:` changes only for a breaking change: a field whose meaning or type changes, a field that becomes required, or a change to the file name, the body or the layout of the folder. Adding a field, adding a value to a list of values, or adding a file next to the Markdown file is not breaking.
+3. **Every version keeps what it does not know.** A front matter key Manicule does not know (a newer Manicule's field, or one of your own) is kept, with its lines exactly as written, through reading the file, the browser's record, sync, the Manicule export file and every rewrite. When the file wins (its `updated` is later), its unknown keys replace the record's. When Manicule's record wins and holds no unknown keys, it takes the file's without changing `updated`; otherwise the record's unknown keys are written.
+4. **An older Manicule never deletes a newer one's fields.** It keeps them by rule 3. A file with a newer `manicule:` than it reads is not saved over: that page's file waits and Settings say to update Manicule. (Today a Manicule that meets an unknown version keeps the file as a conflict copy and then saves over it, see [How Manicule reads changes back](#how-manicule-reads-changes-back); no version 2 exists yet, and the waiting behaviour ships before the first build that writes one.)
+5. **Reading never needs a field that was added later.** A missing field reads as its empty value (none, `false`, `[]`), so a file written before the field existed is still valid.
+6. **Only Manicule's own fields decide anything.** Unknown keys are kept and shown nowhere in the app; search does not read them.
+
+### Every field
+
+Status: **built** = written today. **reserved (item)** = not written yet; the work item named builds it.
+
+| Front matter | Record | Type | Meaning | Status |
+| --- | --- | --- | --- | --- |
+| `url` | `url` | string | The address as saved. | built |
+| `normalized_url` | `normalizedUrl` | string | The address Manicule matches on; it names the file. | built |
+| `normalization` | (none) | number | The version of the URL normalization rules that computed `normalized_url`; absent means 1 ([URL normalization version](#url-normalization-version)). | reserved (the first change to the rules) |
+| `title` | `title` | string | The bookmark's title. | built |
+| `locations` | `chromeNodes` / `restoreKeys` | list of maps | Where the page's bookmarks are, or were while in the Trash. | built |
+| `tags` | `tags` | list of strings | The page's tags. | built |
+| `favorite` | `favorite` | `true` / `false` | Favorite or not. | built |
+| `excerpt` | `excerpt` | string or `null` | A short description. | built |
+| `cover` | `cover` | string or `null` | The cover image's address. | built |
+| `created` | `created` | time | When the record was first created. | built |
+| `updated` | `updated` | time | When a field you set last changed; decides which version wins. | built |
+| `deleted_at` | `deletedAt` | time | When the record went to the Trash. | built |
+| `link_status`, `link_http_status`, `link_checked` | `linkCheck` | see above | The last broken-link check. | built |
+| `type` | `type` | `article`, `video`, `image` or `link` | The media type (decision 244); more values may be added. | reserved (051-save-time-capture) |
+| `type_chosen` | `typeChosen` | `true` / `false` | The user chose the type, so detection never changes it. | reserved (051-save-time-capture) |
+| `facts` | `facts` | map | Typed facts saved with the page. Article: `author`, `site`, `published` (time), `word_count`. Video: `channel`, `duration` (seconds), `uploaded` (time), `chapters` (list of `{ at, title }`, `at` in seconds), `position` (seconds watched). Image: `width`, `height`, `source_page`, `image_url`, `colors` (list of `#rrggbb`). | reserved (051-save-time-capture) |
+| `page_text` | `pageText` | time | When the page text file was last taken; absent when there is none. | reserved (051-save-time-capture) |
+| `image_copy` | `imageCopy` | time | When the image copy or screenshot file was last taken. | reserved (051-save-time-capture) |
+| `full_copy` | `fullCopy` | time | When the full copy file was last taken; `has:copy` reads it. | reserved (066-full-copies) |
+| `later` | `later` | time | Marked Read later, at this time; absent when not marked. | reserved (064-read-later) |
+| `up_next` | `upNext` | number | Place in Up next, 1 first; absent when not in Up next. Positions are whole numbers with no gaps. | reserved (064-read-later) |
+| `dropped` | `dropped` | time | When the read-later mark lapsed unread (Dropped from queue); cleared when marked again. | reserved (064-read-later) |
+| `read` | `read` | time | When the page was last marked read. | reserved (064-read-later) |
+| `reading_position` | `readingPosition` | number from 0 to 1 | How far through the page text the reader was left, to resume there. A video's place is `facts.position`. | reserved (064-read-later) |
+| `due` | `due` | time | When it is due. Snooze sets a later `due`; Done removes it. There is no separate snooze field: `is:snoozed` is a `due` in the future. | reserved (063-reminders) |
+| `remembered` | `remembered` | time | A remembered page (no bookmark), remembered at this time; absent on a bookmark. | reserved (054-remember) |
+| `last_used` | `lastUsed` | time | When a remembered page was last used; its expiry clock counts from here. | reserved (054-remember) |
+| `ai` | `ai` | map | AI metadata with its own `schema` version ([PRD §8.2](PRD.md#82-sidecar-store-and-fields-owned-by-manicule)). | reserved (010-ai) |
+| `manicule` | (none) | number | The format version, `1`. | built |
+| (body) | `note` | Markdown | The note: the body up to `## Highlights`. | built |
+| (body) `## Highlights` | `highlights` | list | Highlights and clips ([Highlights](#highlights)). | reserved (065-highlights) |
+| (none) | `unknownFrontmatter` | list of raw entries | Front matter keys this version does not know, kept by rule 3. | built |
+
+Not stored per page, on purpose: **stacks** (a stack is a folder, and folders have no file: a stack is a synced setting, decision 357), **opens and other usage** (per computer, in the browser only, so `opened:` can differ between computers), embeddings and the search index (rebuilt on each computer), and Chrome's ids.
+
+A reserved field is written only when it has a value. Taking a copy writes `page_text`, `image_copy`, `full_copy` and `facts` without changing `updated`, as a link check does; the other reserved fields change `updated` like any edit.
+
+## Highlights
+
+(Reserved: work item 065-highlights builds it.) Highlights and clips sit in the body under a line that is exactly `## Highlights`. The first such line outside a fenced code block ends the note; everything after it belongs to the section, to the end of the file. Manicule always writes the section last, after one empty line. A note cannot hold its own `## Highlights` heading; any other heading is fine.
+
+Each entry starts with one line that holds its details as JSON in an HTML comment, which Markdown viewers hide, then the quoted text, then an optional note:
+
+```markdown
+## Highlights
+
+<!-- manicule:highlight {"id":"h3k9q2","created":"2026-11-22T09:14:00Z","prefix":"most queries, ","suffix":" only when the"} -->
+> A partial index helps only when the query's WHERE clause matches it.
+
+Check this against the slow report query.
+
+<!-- manicule:clip {"id":"c81za0","created":"2026-11-22T09:20:00Z"} -->
+> **Ingredients:** 200 g flour, 2 eggs.
+```
+
+- `manicule:highlight` is a passage marked on the page; `manicule:clip` is a part of the page kept with the bookmark.
+- The JSON has `id` (unique within the file), `created` (time) and, for a highlight, the anchor used to draw it again on the live page: `prefix` and `suffix` (up to 32 characters of page text just before and after the passage, as in the W3C text-quote selector) and, when known, `start` (its offset in the page text). Keys Manicule does not know are kept.
+- The quoted text is every `> ` line after the comment line; the passage itself is that text without `> `. Lines after it, up to the next entry's comment line, are the entry's note.
+- Highlights are your data: editing the quoted text or note by hand is safe; keep each comment line as it is.
+
+## Files next to the Markdown file
+
+From stage 2 a page can have other files beside its Markdown file. Each one's name is the Markdown file's name with `.md` replaced:
+
+| File | Holds | Written by |
+| --- | --- | --- |
+| `<name>.text.md` | The page text: the readable text of the page as Markdown, with front matter `url`, `taken` (time) and `manicule: 1`. At most 1,000,000 bytes; longer text is cut and ends with a line saying so. | 051-save-time-capture |
+| `<name>.image.<ext>` | The image copy, or a screenshot when the page has no cover; `<ext>` is `png`, `jpg`, `webp` or `gif`. At most 10 MB. | 051-save-time-capture |
+| `<name>.mhtml` | The full copy: the whole page as one MHTML file. At most 50 MB. | 066-full-copies |
+
+For example `example-com-articles-postgres-indexing-3f2a9c01be.md` has `example-com-articles-postgres-indexing-3f2a9c01be.text.md` and `example-com-articles-postgres-indexing-3f2a9c01be.mhtml`. These files are not records: Manicule never reads them as bookmarks, and editing them changes no bookmark. They follow their Markdown file:
+
+- **Trash and restore:** they move to `.trash/` with it, and back.
+- **Purge:** they are deleted with it after 30 days in the Trash.
+- **New address:** when a bookmark's address changes so that its normalized URL changes, they are renamed with its file.
+- **Conflict copies:** a sync app's copy of one, such as `<name>.text.sync-conflict-20261114-101010-ABCDEFG.md`, is listed in **Sync conflicts** under its page, and is never changed or deleted by Manicule.
+- **A file with no Markdown file** beside it (for example one still syncing) is left alone.
+
+Without the helper the same files are kept in the browser, with the record.
+
+## URL normalization version
+
+The normalized URL names every file and matches every bookmark, so a change to the rules that compute it (for example a new tracking parameter to remove) changes some pages' names. The rules have a version, `1` today. A file written under newer rules says so with `normalization:` in its front matter; a file without it was written under version 1. A Manicule with newer rules migrates once, in the browser and in the folder: it computes every record's new normalized URL, merges records that now share one (below), renames their files and the files beside them, and writes `normalization:` into each file. A Manicule that finds a file with a newer `normalization:` than its own rules stops reading and writing the whole folder, and Settings say to update Manicule; it keeps working in the browser alone, because its keys would no longer match the folder's and would make duplicate files.
+
+When two records merge, the one with the later `updated` gives every single-value field; `tags` are joined; both notes are kept, the older one after a line `---`; highlights are joined by `id`; the bookmark links of both stay; `created` is the earlier one. Activity logs the merge, and Undo takes it back.
 
 ## Example
 
