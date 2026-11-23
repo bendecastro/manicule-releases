@@ -48,6 +48,9 @@ Keys are written in this order. Times are ISO 8601 in UTC, for example `2026-10-
 | `link_status` | `ok`, `redirect`, `blocked`, `broken`, `unreachable`, `timeout` or `local` | Only after a broken-link check: what it found. `ok`: the page answered. `redirect`: it answered after a redirect to another page. `blocked`: the site refused the checker (401, 403 or 429), which does not mean the page is gone. `broken`: another 4xx or 5xx answer. `unreachable`: no answer (name lookup, TLS or connection failure). `timeout`: no answer in time. `local`: an address on the local network, not checked. |
 | `link_http_status` | number | Only after a check that got an HTTP answer: its status code. |
 | `link_checked` | time | Only after a check: when it ran. A check does not change `updated`. |
+| `type` | `article`, `video`, `image` or `link` | The page's media type, detected when it was saved (a newer Manicule may write other values, which are kept). A file without it gets its type from the address alone (a YouTube or Vimeo watch page is `video`, a `.jpg` is `image`, the rest `link`). |
+| `type_chosen` | `true` | Written only when you chose the type in Manicule; detection then never changes it. |
+| `facts` | map | Facts about the page saved with it, by type: article `author`, `site`, `published`, `word_count`; video `channel`, `duration` and `position` (seconds), `uploaded`, `chapters` (a list of maps with `at`, in seconds, and `title`); image `width`, `height`, `source_page`, `image_url`, `colors` (`#rrggbb`). A value of the wrong kind is ignored. |
 | `manicule` | number, required | The format version, `1`. Files written before Manicule was renamed carry `shelfmark: 1` instead and are still read; Manicule rewrites them with `manicule:`. |
 
 Keys Manicule does not know are kept as they are, so you can add your own: Manicule stores them with the record in the browser, writes them back when it rewrites the file, and carries them in the Manicule export file. A newer Manicule's keys survive an older one the same way ([Fields and compatibility](#fields-and-compatibility)).
@@ -115,11 +118,11 @@ Status: **built** = written today. **reserved (item)** = not written yet; the wo
 | `updated` | `updated` | time | When a field you set last changed; decides which version wins. | built |
 | `deleted_at` | `deletedAt` | time | When the record went to the Trash. | built |
 | `link_status`, `link_http_status`, `link_checked` | `linkCheck` | see above | The last broken-link check. | built |
-| `type` | `type` | `article`, `video`, `image` or `link` | The media type (decision 244); more values may be added. | reserved (051-save-time-capture) |
-| `type_chosen` | `typeChosen` | `true` / `false` | The user chose the type, so detection never changes it. | reserved (051-save-time-capture) |
-| `facts` | `facts` | map | Typed facts saved with the page. Article: `author`, `site`, `published` (time), `word_count`. Video: `channel`, `duration` (seconds), `uploaded` (time), `chapters` (list of `{ at, title }`, `at` in seconds), `position` (seconds watched). Image: `width`, `height`, `source_page`, `image_url`, `colors` (list of `#rrggbb`). | reserved (051-save-time-capture) |
-| `page_text` | `pageText` | time | When the page text file was last taken; absent when there is none. | reserved (051-save-time-capture) |
-| `image_copy` | `imageCopy` | time | When the image copy or screenshot file was last taken. | reserved (051-save-time-capture) |
+| `type` | `type` | `article`, `video`, `image` or `link` | The media type (decision 244); more values may be added. | built |
+| `type_chosen` | `typeChosen` | `true` / `false` | The user chose the type, so detection never changes it. | built |
+| `facts` | `facts` | map | Typed facts saved with the page. Article: `author`, `site`, `published` (time), `word_count`. Video: `channel`, `duration` (seconds), `uploaded` (time), `chapters` (list of `{ at, title }`, `at` in seconds), `position` (seconds watched). Image: `width`, `height`, `source_page`, `image_url`, `colors` (list of `#rrggbb`). | built |
+| `page_text` | `pageText` | time | When the page text file was last taken; absent when there is none. | built |
+| `image_copy` | `imageCopy` | time | When the image copy or screenshot file was last taken. | built |
 | `full_copy` | `fullCopy` | time | When the full copy file was last taken; `has:copy` reads it. | reserved (066-full-copies) |
 | `later` | `later` | time | Marked Read later, at this time; absent when not marked. | reserved (064-read-later) |
 | `up_next` | `upNext` | number | Place in Up next, 1 first; absent when not in Up next. Positions are whole numbers with no gaps. | reserved (064-read-later) |
@@ -174,13 +177,13 @@ From stage 2 a page can have other files beside its Markdown file. Each one's na
 
 For example `example-com-articles-postgres-indexing-3f2a9c01be.md` has `example-com-articles-postgres-indexing-3f2a9c01be.text.md` and `example-com-articles-postgres-indexing-3f2a9c01be.mhtml`. These files are not records: Manicule never reads them as bookmarks, and editing them changes no bookmark. They follow their Markdown file:
 
-- **Trash and restore:** they move to `.trash/` with it, and back.
+- **Trash and restore:** they move to `.trash/` with it, and back. If a file of the same name is already where one moves to, the one changed last stays and the other is deleted.
 - **Purge:** they are deleted with it after 30 days in the Trash.
-- **New address:** when a bookmark's address changes so that its normalized URL changes, they are renamed with its file.
-- **Conflict copies:** a sync app's copy of one, such as `<name>.text.sync-conflict-20261114-101010-ABCDEFG.md`, is listed in **Sync conflicts** under its page, and is never changed or deleted by Manicule.
+- **New address:** not renamed today. A bookmark whose address changes so that its normalized URL changes gets a new record; the files beside the old file stay with the old record, go to the Trash with it and are purged with it after 30 days. The new record has none until its next save.
+- **Conflict copies:** a sync app's copy of one, such as `<name>.text.sync-conflict-20261114-101010-ABCDEFG.md`, is listed in **Sync conflicts** under its page, and is never changed or deleted by Manicule. A conflict copy of an image copy is not listed: it is left alone in the folder (decision 383).
 - **A file with no Markdown file** beside it (for example one still syncing) is left alone.
 
-Without the helper the same files are kept in the browser, with the record.
+Without the helper, or with a helper too old to write them (one that does not list `side-files`), the same files are kept in the browser, with the record, and written once a helper that can write them connects.
 
 ## URL normalization version
 
