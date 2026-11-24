@@ -20,7 +20,7 @@ To update: download the zip again, replace the folder's contents with the new fi
 
 ## 2. Install the helper (optional)
 
-The helper saves your tags, notes and favorites as Markdown files, by default in `~/Documents/Manicule`. It runs on Linux and macOS and needs [Node.js](https://nodejs.org) 22 or newer.
+The helper saves your tags, notes and favorites as Markdown files, by default in `~/Documents/Manicule`. It runs on Linux (x64 and arm64) and on Macs with Apple silicon, and needs nothing else installed.
 
 1. Open Manicule's Settings (press `g` then `,` in the app) and go to **Markdown files and helper**.
 2. Click **Set up the helper**, then **Allow helper connection**, and accept the browser's prompt. If Settings asks you to reload Manicule, do so.
