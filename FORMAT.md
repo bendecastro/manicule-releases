@@ -121,8 +121,11 @@ Status: **built** = written today. **reserved (item)** = not written yet; the wo
 | `type` | `type` | `article`, `video`, `image` or `link` | The media type (decision 244); more values may be added. | built |
 | `type_chosen` | `typeChosen` | `true` / `false` | The user chose the type, so detection never changes it. | built |
 | `facts` | `facts` | map | Typed facts saved with the page. Article: `author`, `site`, `published` (time), `word_count`. Video: `channel`, `duration` (seconds), `uploaded` (time), `chapters` (list of `{ at, title }`, `at` in seconds), `position` (seconds watched). Image: `width`, `height`, `source_page`, `image_url`, `colors` (list of `#rrggbb`). | built |
-| `page_text` | `pageText` | time | When the page text file was last taken; absent when there is none. | built |
-| `image_copy` | `imageCopy` | time | When the image copy or screenshot file was last taken. | built |
+| `page_text` | `pageText` | time | When the current page text was taken; absent when there is none. | built |
+| `page_text_file` | `copies.text.reference` | `<file> <taken> <stated>` | Which page text file is current: its whole name (`-` for one kept before copy files had their content in the name), when it was taken and when this was stated. One entry, so a rewrite by an older Manicule never pairs one file with another's time. When `page_text` differs from `<taken>`, an older Manicule took a newer copy and `page_text` wins. | built |
+| `page_text_cleared` | `copies.text.cleared` | time | Delete page text cleared every page text stated up to this time; written whenever it exists. | built |
+| `image_copy` | `imageCopy` | time | When the current image copy or screenshot was taken. | built |
+| `image_copy_file`, `image_copy_cleared` | `copies.image` | as `page_text_file`, `page_text_cleared` | The same for the image copy or screenshot. | built |
 | `full_copy` | `fullCopy` | time | When the full copy file was last taken; `has:copy` reads it. | reserved (066-full-copies) |
 | `later` | `later` | time | Marked Read later, at this time; absent when not marked. | reserved (064-read-later) |
 | `up_next` | `upNext` | number | Place in Up next, 1 first; absent when not in Up next. Positions are whole numbers with no gaps. | reserved (064-read-later) |
@@ -171,8 +174,9 @@ From stage 2 a page can have other files beside its Markdown file. Each one's na
 
 | File | Holds | Written by |
 | --- | --- | --- |
-| `<name>.text.md` | The page text: the readable text of the page as Markdown, with front matter `url`, `taken` (time) and `manicule: 1`. At most 1,000,000 bytes; longer text is cut and ends with a line saying so. | 051-save-time-capture |
-| `<name>.image.<ext>` | The image copy, or a screenshot when the page has no cover; `<ext>` is `png`, `jpg`, `webp` or `gif`. At most 10 MB. | 051-save-time-capture |
+| `<name>.text.<hash>.md` | The page text: the readable text of the page as Markdown, with front matter `url`, `taken` (time) and `manicule: 1`. At most 1,000,000 bytes; longer text is cut and ends with a line saying so. `<hash>` is the first 16 hex digits of the file's SHA-256, so each capture is its own file that is never changed; `page_text_file` names the current one. | 117-copies-by-content |
+| `<name>.image.<hash>.<ext>` | The image copy, or a screenshot when the page has no cover; `<ext>` is `png`, `jpg`, `webp` or `gif`. At most 10 MB. Named and never changed like the page text; `image_copy_file` names the current one. | 117-copies-by-content |
+| `<name>.text.md`, `<name>.image.<ext>` | Copies kept before 117-copies-by-content, rewritten in place on each capture. Read for a reference with `-` as its file; no longer written. | 051-save-time-capture |
 | `<name>.mhtml` | The full copy: the whole page as one MHTML file. At most 50 MB. | 066-full-copies |
 
 For example `example-com-articles-postgres-indexing-3f2a9c01be.md` has `example-com-articles-postgres-indexing-3f2a9c01be.text.md` and `example-com-articles-postgres-indexing-3f2a9c01be.mhtml`. These files are not records: Manicule never reads them as bookmarks, and editing them changes no bookmark. They follow their Markdown file:
@@ -183,7 +187,7 @@ For example `example-com-articles-postgres-indexing-3f2a9c01be.md` has `example-
 - **Conflict copies:** a sync app's copy of one, such as `<name>.text.sync-conflict-20261114-101010-ABCDEFG.md`, is listed in **Sync conflicts** under its page, and is never changed or deleted by Manicule. A conflict copy of an image copy is not listed: it is left alone in the folder (decision 383).
 - **A file with no Markdown file** beside it (for example one still syncing) is left alone.
 
-Without the helper, or with a helper too old to write them (one that does not list `side-files`), the same files are kept in the browser, with the record, and written once a helper that can write them connects.
+`<name>` is the Markdown file's name when the copy was taken; a copy file is never renamed. Without the helper, or with a helper too old to write them (one that does not list `copy-files`), the same copies are kept in the browser, with the record, and written once a helper that can write them connects.
 
 ## URL normalization version
 
